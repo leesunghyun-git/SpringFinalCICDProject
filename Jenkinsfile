@@ -57,9 +57,9 @@
 			
 			stage('Deploy to EC2'){
 				steps{
-					withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY')]){
+					sshagent(credentials:['ec2-ssh-key']){
 					sh """
-					   ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+					   ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
 					        docker stop awscicd || true
 					        docker rm awscicd || true
 					        docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
