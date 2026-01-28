@@ -28,7 +28,7 @@ p {
 <body>
 	<div class="container">
 		<div class="row">
-			<h3>CICD 시도 3회차</h3>
+			<h3>AWS CICD 1회차</h3>
 			<c:forEach var="vo" items="${list }">
 				<div class="col-md-3">
 				  <div class="thumbnail">
