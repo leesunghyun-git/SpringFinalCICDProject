@@ -1,94 +1,95 @@
-pipeline {
-	agent any
-	
-	environment {
-		DOCKER_USER = 'sunghyun9737'
-		IMAGE_NAME = '${DOCKER_USER}/boot-app:latest'
-		CONTAINER_NAME = 'boot-app'
-	}
-	stages{
-		stage('Checkout'){
-			steps{
-				echo 'Git Checkout'
-				checkout scm
-			}
-		}
+	pipeline {
+		agent any
 		
-		stage('Gradlew Build') {
-			steps{
-				echo 'Gradle Build'
-				sh '''
-				    chmod +x gradlew
-				    ./gradlew clean build -x test
-				   '''
-			}
+		environment {
+			DOCKER_USER = 'sunghyun9737'
+			IMAGE_NAME = '${DOCKER_USER}/boot-app:latest'
+			CONTAINER_NAME = 'boot-app'
 		}
-		
-		stage('Docker build'){
-			steps {
-				echo 'Docker Image build'
-				sh '''
-				 	docker build -t ${IMAGE_NAME} .
-				 	
-			       '''
+		stages{
+			stage('Checkout'){
+				steps{
+					echo 'Git Checkout'
+					checkout scm
+				}
+			}
+			
+			stage('Gradlew Build') {
+				steps{
+					echo 'Gradle Build'
+					sh '''
+					    chmod +x gradlew
+					    ./gradlew clean build -x test
+					   '''
+				}
+			}
+			
+			stage('Docker build'){
+				steps {
+					echo 'Docker Image build'
+					sh '''
+					 	docker build -t ${IMAGE_NAME} .
+					 	
+				       '''
+					
+				}
+			}
+			
+			stage('Docker Hub Login'){
+				steps {
+					echo 'Docker Hub Login'
+					withCredentials([usernamePassword(
+						credentialsId: 'dockerhub-credential',
+						usernameVariable: 'DOCKER_ID',
+						passwordVariable: 'DOCKER_PW'
+					)]){
+						sh '''
+						 	echo $DOCKER_PW | docker login -u $DOCKER_ID --password-stdin
+						   '''
+					}
+					
+				}
+				
 				
 			}
-		}
-		
-		stage('Docker Hub Login'){
-			steps {
-				echo 'Docker Hub Login'
-				withCredentials([usernamePassword(
-					credentialsId: 'dockerhub-credential',
-					usernameVariable: 'DOCKER_ID',
-					passwordVariable: 'DOCKER_PW'
-				)]){
+			
+			stage('DockerHub Push'){
+				steps{
+					echo 'DockerHub Push'
 					sh '''
-					 	echo $DOCKER_PW | docker login -u $DOCKER_ID --password-stdin
+						docker push ${IMAGE_NAME}
 					   '''
+					
 				}
 				
 			}
-			
-			
-		}
-		
-		stage('DockerHub Push'){
-			steps{
-				echo 'DockerHub Push'
-				sh '''
-					docker push ${IMAGE_NAME}
-				   '''
-				
+			stage('Docker Run'){
+				steps{
+					echo 'Docker Run'
+					sh '''
+						docker stop ${CONTAINER_NAME} || true
+						docker rm ${CONTAINER_NAME} || true
+						
+						docker pull ${IMAGE_NAME}
+						
+						docker run --name ${CONTAINER_NAME} \
+						-it -d -p 9090:9090 \
+						${IMAGE_NAME}
+					   '''
+					
+				}
 			}
 			
-		}
-		stage('Docker Run'){
-			steps{
-				echo 'Docker Run'
-				sh '''
-					docker stop ${CONTAINER_NAME} || true
-					docker rm ${CONTAINER_NAME} || true
-					
-					docker pull ${IMAGE_NAME}
-					
-					docker run --name ${CONTAINER_NAME} \
-					-it -d -p 9090:9090 \
-					${IMAGE_NAME}
-				   '''
-				
-			}
-		}
+			
 		
+		}
 		post {
-			success{
-				echo 'Docker 실행 성공'
+				success{
+					echo 'Docker 실행 성공'
+				}
+				failure {
+					echo 'Docker 실행 실패'
+					
+				}
 			}
-			failure {
-				echo 'Docker 실행 실패'
-				
-			}
-		}
-	
 	}
-}
