@@ -66,12 +66,8 @@ h3 {
 					</td>
 				</tr>
 				<tr>
+					<td class="text-right"><a href="/find" class="btn btn-sm btn-info">맛집 검색</a></td>
 					<td class="text-right"><a href="/" class="btn btn-sm btn-primary">목록</a></td>
-				</tr>
-				<tr>
-					<td>	
-						<div id="map" style="width:100%;height:350px;"></div>
-					</td>
 				</tr>
 			</table>
 		</div>
