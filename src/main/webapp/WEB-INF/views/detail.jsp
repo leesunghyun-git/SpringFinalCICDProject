@@ -22,6 +22,7 @@ h3 {
 <body>
 	<div class="container">
 		<div class="col-sm-9">
+			<h3>상세 보기</h3>
 			<table class="table">
 				<tr>
 					<td width="30%" class="text-center" rowspan="8">
