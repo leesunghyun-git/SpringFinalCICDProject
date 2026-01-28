@@ -1,6 +1,6 @@
 version: "3"
 service:
-	app:
-		images: sunghyun9737/boot-app
-		ports:
-			- "9090:9090"
+ app:
+  images: sunghyun9737/boot-app
+  ports:
+   - "9090:9090"
