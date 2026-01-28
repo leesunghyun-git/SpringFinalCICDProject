@@ -17,20 +17,20 @@
 			stage('Gradlew Build') {
 				steps{
 					echo 'Gradle Build'
-					sh '''
+					sh """
 					    chmod +x gradlew
 					    ./gradlew clean build -x test
-					   '''
+					   """
 				}
 			}
 			
 			stage('Docker build'){
 				steps {
 					echo 'Docker Image build'
-					sh '''
+					sh """
 					 	docker build -t ${IMAGE_NAME} .
 					 	
-				       '''
+				       """
 					
 				}
 			}
@@ -43,9 +43,9 @@
 						usernameVariable: 'DOCKER_ID',
 						passwordVariable: 'DOCKER_PW'
 					)]){
-						sh '''
+						sh """
 						 	echo $DOCKER_PW | docker login -u $DOCKER_ID --password-stdin
-						   '''
+						   """
 					}
 					
 				}
@@ -56,9 +56,9 @@
 			stage('DockerHub Push'){
 				steps{
 					echo 'DockerHub Push'
-					sh '''
+					sh """
 						docker push ${IMAGE_NAME}
-					   '''
+					   """
 					
 				}
 				
@@ -66,7 +66,7 @@
 			stage('Docker Run'){
 				steps{
 					echo 'Docker Run'
-					sh '''
+					sh """
 						docker stop ${CONTAINER_NAME} || true
 						docker rm ${CONTAINER_NAME} || true
 						
@@ -75,7 +75,7 @@
 						docker run --name ${CONTAINER_NAME} \
 						-it -d -p 9090:9090 \
 						${IMAGE_NAME}
-					   '''
+					   """
 					
 				}
 			}
