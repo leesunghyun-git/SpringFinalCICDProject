@@ -2,10 +2,10 @@
 		agent any
 		
 		environment {
-			DOCKER_USER = 'sunghyun9737'
-			IMAGE_NAME = '${DOCKER_USER}/boot-app:latest'
-			COMPOSE_FILE = 'docker-compose.yml'
-			//CONTAINER_NAME = 'boot-app'
+			DOCKER_IMAGE = "sunghyun9737/awscicd-app"
+			DOCKER_TAG = "latest"
+			EC2_HOST = "54.180.104.232"
+			EC2_USER = "ubuntu"
 		}
 		stages{
 			stage('Checkout'){
@@ -29,7 +29,7 @@
 				steps {
 					echo 'Docker Image build'
 					sh """
-					 	docker build -t ${IMAGE_NAME} .
+					 	docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
 					 	
 				       """
 					
@@ -46,6 +46,7 @@
 					)]){
 						sh """
 						 	echo $DOCKER_PW | docker login -u $DOCKER_ID --password-stdin
+						 	docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
 						   """
 					}
 					
@@ -54,17 +55,21 @@
 				
 			}
 			
-			stage('DockerHub Push'){
+			stage('Deploy to EC2'){
 				steps{
-					echo 'DockerHub Push'
+					echo 'Deploy to EC2'
 					sh """
-						docker push ${IMAGE_NAME}
+					   ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+					        docker stop awscicd || true
+					        docker rm awscicd || true
+					        docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
+					        docker run --name awscicd -it -d -p 9090:9090 ${DOCKER_IMAGE}:${DOCKER_TAG}
 					   """
 					
 				}
 				
 			}
-			
+			/*
 			stage('Docker Compose Down'){
 				steps{
 					echo 'Docker-compose down'
@@ -73,7 +78,19 @@
 					   """
 				}
 			}
-			
+			*/
+			/*
+			stage('Docker Stop And RM'){
+				steps{
+					echo 'docker stop rm'
+					sh """
+						docker stop ${CONTAINER_NAME} || true
+						docker rm ${CONTAINER_NAME} || true
+						docker pull ${IMAGE_NAME}
+					   """
+				}
+				
+			}	
 			stage('Docker Compose up'){
 				steps{
 					echo 'Docker-compose up'
@@ -83,6 +100,7 @@
 				}
 				
 			}
+			*/
 			/*stage('Docker Run'){
 				steps{
 					echo 'Docker Run'
@@ -105,10 +123,10 @@
 		}
 		post {
 				success{
-					echo 'Docker 실행 성공'
+					echo 'CI/CD 실행 성공'
 				}
 				failure {
-					echo 'Docker 실행 실패'
+					echo 'CI/CD 실행 실패'
 					
 				}
 			}
